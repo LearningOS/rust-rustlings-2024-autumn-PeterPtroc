@@ -2,10 +2,11 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
+
 
 use std::cmp::Ord;
 use std::default::Default;
+use std::mem::swap;
 
 pub struct Heap<T>
 where
@@ -22,8 +23,8 @@ where
 {
     pub fn new(comparator: fn(&T, &T) -> bool) -> Self {
         Self {
-            count: 0,
-            items: vec![T::default()],
+            count: 0,   //cao
+            items: vec![],
             comparator,
         }
     }
@@ -37,7 +38,15 @@ where
     }
 
     pub fn add(&mut self, value: T) {
-        //TODO
+        self.count += 1;
+        self.items.push(value);
+        // pushup
+        let mut now = self.count - 1;
+        while now != 0 && (self.comparator)(&self.items[now], &self.items[self.parent_idx(now)]) {
+            let ba = self.parent_idx(now);
+            self.items.swap(now, ba);
+            now = ba;
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -45,7 +54,7 @@ where
     }
 
     fn children_present(&self, idx: usize) -> bool {
-        self.left_child_idx(idx) <= self.count
+        self.left_child_idx(idx) < self.count
     }
 
     fn left_child_idx(&self, idx: usize) -> usize {
@@ -57,8 +66,13 @@ where
     }
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
+        let left = self.left_child_idx(idx);
+        let right = self.right_child_idx(idx);
+        if right >= self.count || (self.comparator)(&self.items[left], &self.items[right]) {
+            left
+        } else {
+            right
+        }
     }
 }
 
@@ -84,8 +98,28 @@ where
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        //TODO
-		None
+        if self.count != 0 {
+            self.items.swap(0usize, self.count - 1);
+            let top = self.items.pop();
+            self.count -= 1;
+
+            // pushdown
+            if !self.is_empty() {
+                let mut now = 0;
+                while self.children_present(now) {
+                    let smallest_child = self.smallest_child_idx(now);
+                    if (self.comparator)(&self.items[smallest_child], &self.items[now]) {
+                        self.items.swap(now, smallest_child);
+                        now = smallest_child;
+                    } else {
+                        break;
+                    }
+                }
+            }
+            top
+        } else {
+            None
+        }
     }
 }
 
